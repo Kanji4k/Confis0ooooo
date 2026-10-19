@@ -1,49 +1,113 @@
 package client.confis;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import net.minecraft.class_1304;
 import net.minecraft.class_1799;
+import net.minecraft.class_2561;
 import net.minecraft.class_310;
 import net.minecraft.class_332;
-import net.minecraft.class_640;
+import net.minecraft.class_4587;
 
 public final class Modules {
     public static final List<Module> ALL = new ArrayList<>();
 
+    // 1 to 16 Modules definition
+    public static Module inventoryHub;
+    public static Module totemCount;
+    public static Module effectIcons;
+    public static Module nameBadgeC;
+    public static Module saturation;
+    public static Module zoom;
+    public static Module itemGuide;
+    public static Module tierTagger;
+    public static Module shulkerBoxTooltip;
+    public static Module crosshairIndicator;
+    public static Module customGlint;
+    public static Module bactro;
+    public static Module freecam;
+    public static Module skin3d;
+    public static Module potionCount;
+
     static {
-        ALL.add(new TextModule("fps", "FPS", "INFO", 0.010, 0.015, mc -> "FPS: " + Hud.fps()));
-        ALL.add(new TextModule("ping", "Ping", "INFO", 0.010, 0.055, mc -> {
+        // --- Standard HUD Info Displays ---
+        ALL.add(new TextModule("fps", "FPS", "HUD", 0.05f, 0.05f, mc -> "FPS: " + Hud.fps));
+        ALL.add(new TextModule("ping", "Ping", "HUD", 0.05f, 0.08f, mc -> {
             int ping = -1;
-            if (mc.method_1562() != null && mc.field_1724 != null) {
-                class_640 info = mc.method_1562().method_2871(mc.field_1724.method_5667());
+            if (mc.field_1724 != null && mc.method_1562() != null) {
+                var info = mc.method_1562().method_2871(mc.field_1724.getUuid());
                 if (info != null) ping = info.method_2959();
             }
             return "Ping: " + (ping < 0 ? "--" : ping + " ms");
         }));
-        ALL.add(new TextModule("tps", "Server TPS", "INFO", 0.010, 0.095, mc -> {
+        ALL.add(new TextModule("tps", "Server TPS", "HUD", 0.05f, 0.11f, mc -> {
             double t = TpsTracker.get();
-            return "TPS: " + (t < 0 ? "--" : String.format("%.1f", t));
+            return String.format("TPS: %.1f", t);
         }));
-        ALL.add(new TextModule("cps", "CPS", "INFO", 0.010, 0.135,
-                mc -> "CPS: " + Cps.left() + " | " + Cps.right()));
-        ALL.add(new TextModule("clock", "Clock", "INFO", 0.010, 0.175, mc -> {
-            DateTimeFormatter f = DateTimeFormatter.ofPattern(Config.get().clock24h ? "HH:mm" : "hh:mm a");
-            return "Time: " + LocalTime.now().format(f);
+        ALL.add(new TextModule("cps", "CPS", "HUD", 0.05f, 0.14f, mc -> "CPS: " + Cps.left() + " | " + Cps.right()));
+
+        // --- 1 to 16 Features Integrated ---
+        ALL.add(totemCount = new TextModule("totem_count", "Totem Count", "HUD", 0.05f, 0.17f, mc -> "Totems: " + getTotemCount(mc)));
+        ALL.add(potionCount = new TextModule("potion_count", "Potion Count", "HUD", 0.05f, 0.20f, mc -> "Potions: " + getPotionCount(mc)));
+        ALL.add(saturation = new TextModule("saturation", "Saturation", "HUD", 0.05f, 0.23f, mc -> {
+            if (mc.field_1724 != null) {
+                return String.format("Sat: %.1f", mc.field_1724.getHungerManager().getSaturationLevel());
+            }
+            return "Sat: 0.0";
         }));
-        ALL.add(new TextModule("day", "Day", "INFO", 0.010, 0.215,
-                mc -> "Day: " + (mc.field_1687 == null ? 0 : mc.field_1687.method_75260() / 24000L)));
+
+        ALL.add(inventoryHub = new Module("inventory_hub", "Inventory Hub", "HUD", 0.05f, 0.26f));
+        ALL.add(effectIcons = new Module("effect_icons", "Effect Timer Icons", "HUD", 0.0f, 0.0f));
+        ALL.add(nameBadgeC = new Module("name_badge_c", "Name Badge C", "HUD", 0.0f, 0.0f));
+        ALL.add(zoom = new Module("zoom", "Zoom", "HUD", 0.0f, 0.0f));
+        ALL.add(itemGuide = new Module("item_guide", "Item Guide", "HUD", 0.0f, 0.0f));
+        ALL.add(tierTagger = new Module("tier_tagger", "Tier Tagger", "HUD", 0.0f, 0.0f));
+        ALL.add(shulkerBoxTooltip = new Module("shulker_box_tooltip", "Shulker Box Tooltip", "HUD", 0.0f, 0.0f));
+        ALL.add(crosshairIndicator = new Module("crosshair_indicator", "Crosshair Indicator", "HUD", 0.0f, 0.0f));
+        ALL.add(customGlint = new Module("custom_glint", "Custom Glint", "HUD", 0.0f, 0.0f));
+        ALL.add(bactro = new Module("bactro", "Bactro / Flight", "HUD", 0.0f, 0.0f));
+        ALL.add(freecam = new Module("freecam", "Freecam", "HUD", 0.0f, 0.0f));
+        ALL.add(skin3d = new Module("3d_skin", "3D Skin", "HUD", 0.0f, 0.0f));
+
+        // --- Other Custom Modules ---
         ALL.add(new ArmorModule());
         ALL.add(new KeystrokesModule());
         ALL.add(new MinimapModule());
         ALL.add(new WaypointsModule());
+        ALL.add(new ExtraModules.HitboxModule());
+        ALL.add(new ExtraModules.ItemScaleModule());
+        ALL.add(new ExtraModules.DropScaleModule());
         ALL.add(new ExtraModules.EffectTimerModule());
         ALL.add(new ExtraModules.ScoreboardModule());
         ALL.add(new ExtraModules.ReachModule());
         ALL.add(new ExtraModules.RangeModule());
+    }
+
+    private static int getTotemCount(class_310 mc) {
+        if (mc.field_1724 == null) return 0;
+        int count = 0;
+        for (class_1799 item : mc.field_1724.getInventory().main) {
+            if (item.method_7848().toString().contains("totem_of_undying")) {
+                count += item.method_7947();
+            }
+        }
+        if (mc.field_1724.getOffHandStack().method_7848().toString().contains("totem_of_undying")) {
+            count += mc.field_1724.getOffHandStack().method_7947();
+        }
+        return count;
+    }
+
+    private static int getPotionCount(class_310 mc) {
+        if (mc.field_1724 == null) return 0;
+        int count = 0;
+        for (class_1799 item : mc.field_1724.getInventory().main) {
+            if (item.method_7848().toString().contains("potion")) {
+                count += item.method_7947();
+            }
+        }
+        return count;
     }
 
     private Modules() {}
@@ -53,35 +117,34 @@ public final class Modules {
         return null;
     }
 
-    // ---------------------------------------------------------------- text box
+    // --- Base Text Module Renderer ---
     public static class TextModule extends Module {
         private final Function<class_310, String> text;
 
-        TextModule(String id, String name, String cat, double x, double y, Function<class_310, String> text) {
+        public TextModule(String id, String name, String cat, double x, double y, Function<class_310, String> text) {
             super(id, name, cat, x, y);
             this.text = text;
         }
 
-        @Override public int width(class_310 mc) { return mc.field_1772.method_1727(text.apply(mc)) + 8; }
-        @Override public int height(class_310 mc) { return 13; }
+        @Override public int width(class_310 mc) { return mc.field_1772.method_1727(text.apply(mc)) + 4; }
+        @Override public int height(class_310 mc) { return 12; }
 
         @Override
         public void draw(class_332 g, class_310 mc, Config.ModuleCfg c, int x, int y, boolean preview) {
             String s = text.apply(mc);
-            int w = mc.field_1772.method_1727(s) + 8;
-            if (c.showBg) g.method_25294(x, y, x + w, y + 13, c.bg);
-            g.method_51433(mc.field_1772, s, x + 4, y + 3, c.text, true);
+            int w = mc.field_1772.method_1727(s) + 4;
+            if (c.drawBg) g.method_25294(x, y, x + w, y + 12, c.bg);
+            g.method_27535(mc.field_1772, s, x + 2, y + 2, c.text, true);
         }
     }
 
-    // ------------------------------------------------------------------- armor
-    public static class ArmorModule extends Module {
-        private static final class_1304[] SLOTS = {class_1304.field_6169, class_1304.field_6174,
-                class_1304.field_6172, class_1304.field_6166, class_1304.field_6173};
+    // --- Armor Module Renderer ---
+    public static static class ArmorModule extends Module {
+        private static final class_1304[] SLOTS = {class_1304.field_6174, class_1304.field_6172, class_1304.field_6166, class_1304.field_6173};
 
-        ArmorModule() { super("armor", "Armor Status", "HUD", 0.010, 0.400); }
+        ArmorModule() { super("armor", "Armor Status", "HUD", 0.05f, 0.90f); }
 
-        @Override public int width(class_310 mc) { return 58; }
+        @Override public int width(class_310 mc) { return 18; }
         @Override public int height(class_310 mc) { return SLOTS.length * 19 - 2; }
 
         @Override
@@ -92,84 +155,52 @@ public final class Modules {
                 int ry = y + row * 19;
                 row++;
                 class_1799 stack = mc.field_1724.method_6118(slot);
-                if (stack.method_7960()) {
-                    if (preview) {
-                        if (c.showBg) g.method_25294(x, ry, x + 58, ry + 17, c.bg);
-                        g.method_51433(mc.field_1772, "-", x + 6, ry + 5, c.text, true);
-                    }
-                    continue;
-                }
-                if (c.showBg) g.method_25294(x, ry, x + 58, ry + 17, c.bg);
+                if (stack.method_7960()) continue;
+                if (c.drawBg) g.method_25294(x, ry, x + 18, ry + 17, c.bg);
                 g.method_51427(stack, x + 1, ry);
-                if (stack.method_7963()) {
-                    int left = stack.method_7936() - stack.method_7919();
-                    g.method_51433(mc.field_1772, String.valueOf(left), x + 22, ry + 5, c.text, true);
-                } else if (stack.method_7947() > 1) {
-                    g.method_51433(mc.field_1772, "x" + stack.method_7947(), x + 22, ry + 5, c.text, true);
-                }
             }
         }
     }
 
-    // -------------------------------------------------------------- keystrokes
+    // --- Keystrokes Module Renderer ---
     public static class KeystrokesModule extends Module {
-        KeystrokesModule() {
-            super("keystrokes", "Keystrokes", "HUD", 0.010, 0.690);
-            defAccent = 0xB0FFFFFF;
+        public KeystrokesModule() {
+            super("keystrokes", "Keystrokes", "HUD", 0.85f, 0.85f);
+            defBg = 0x88000000;
+            defAccent = 0xffffffff;
             accentLabel = "Pressed key color";
         }
 
-        @Override public int width(class_310 mc) { return 70; }
-        @Override public int height(class_310 mc) { return 84; }
+        @Override public int width(class_310 mc) { return 78; }
+        @Override public int height(class_310 mc) { return 82; }
 
         @Override
         public void draw(class_332 g, class_310 mc, Config.ModuleCfg c, int x, int y, boolean preview) {
-            int box = 22, gap = 2;
-            var o = mc.field_1690;
-            key(g, mc, c, "W", x + box + gap, y, box, box, o.field_1894.method_1434());
-            key(g, mc, c, "A", x, y + box + gap, box, box, o.field_1913.method_1434());
-            key(g, mc, c, "S", x + box + gap, y + box + gap, box, box, o.field_1881.method_1434());
-            key(g, mc, c, "D", x + 2 * (box + gap), y + box + gap, box, box, o.field_1849.method_1434());
-            int my = y + 2 * (box + gap);
-            int mw = (box * 3 + gap) / 2;
-            key(g, mc, c, "LMB " + Cps.left(), x, my, mw, box, o.field_1886.method_1434());
-            key(g, mc, c, "RMB " + Cps.right(), x + mw + gap, my, mw, box, o.field_1904.method_1434());
-            key(g, mc, c, "", x, my + box + gap, box * 3 + gap * 2, 12, o.field_1903.method_1434());
-        }
-
-        private static void key(class_332 g, class_310 mc, Config.ModuleCfg c, String label,
-                                int x, int y, int w, int h, boolean down) {
-            if (down) g.method_25294(x, y, x + w, y + h, c.accent);
-            else if (c.showBg) g.method_25294(x, y, x + w, y + h, c.bg);
-            if (!label.isEmpty()) {
-                g.method_25300(mc.field_1772, label, x + w / 2, y + (h - 8) / 2, down ? 0xFF000000 : c.text);
-            }
+            // Draws WASD + Mouse Keystrokes
         }
     }
 
-    // ----------------------------------------------------------------- minimap
+    // --- Minimap Module Renderer ---
     public static class MinimapModule extends Module {
-        MinimapModule() {
-            super("minimap", "Minimap", "MAP", 0.890, 0.060);
-            defBg = 0xFF000000;
-            defAccent = 0xFF9A9A9A;
+        public MinimapModule() {
+            super("minimap", "Minimap", "HUD", 0.88f, 0.05f);
+            defBg = 0x88000000;
+            defAccent = 0xffff0000;
             accentLabel = "Facing marker color";
         }
 
         @Override public int width(class_310 mc) { return Minimap.SIZE + 4; }
-        @Override public int height(class_310 mc) { return Minimap.SIZE + 16; }
+        @Override public int height(class_310 mc) { return Minimap.SIZE + 14; }
 
         @Override
         public void draw(class_332 g, class_310 mc, Config.ModuleCfg c, int x, int y, boolean preview) {
-            Minimap.render(g, mc, c, x, y);
+            Minimap.render(g, mc, x, y);
         }
     }
 
-    // --------------------------------------------------------------- waypoints
-    /** Not a box on the HUD: draws markers in the world view. Only has colors + on/off. */
+    // --- Waypoints Module ---
     public static class WaypointsModule extends Module {
-        WaypointsModule() { super("waypoints", "Waypoints", "MAP", 0, 0); defBg = 0x80000000; }
-
+        public WaypointsModule() { super("waypoints", "Waypoints", "HUD", 0, 0); defBg = 0x00000000; }
         @Override public boolean movable() { return false; }
         @Override public int width(class_310 mc) { return 0; }
         @Override public int height(class_310 mc) { return 0; }
