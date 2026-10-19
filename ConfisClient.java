@@ -22,7 +22,7 @@ public class ConfisClient implements ClientModInitializer {
     public void onInitializeClient() {
         Config.load();
 
-        // Register Right Shift keybinding to open ConfisScreen
+        // Register Right Shift keybinding
         menuKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.confis.menu",
                 InputUtil.Type.KEYSYM,
@@ -30,9 +30,12 @@ public class ConfisClient implements ClientModInitializer {
                 "category.confis.general"
         ));
 
+        // Safe tick listener to open the menu screen when Right Shift is pressed
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (menuKey.wasPressed()) {
-                client.setScreen(new ConfisScreen());
+            if (client.player != null) {
+                while (menuKey.wasPressed()) {
+                    client.setScreen(new ConfisScreen());
+                }
             }
         });
 
