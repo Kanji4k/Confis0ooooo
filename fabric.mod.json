@@ -1,20 +1,27 @@
 {
   "schemaVersion": 1,
-  "id": "confis0oooooo",
-  "version": "1.0.0+1.21.11",
-  "name": "Confis0oooooo Client",
-  "description": "Lunar-style client menu with draggable HUD mods, messenger, item guide, hitboxes and more. Press Right Shift.",
-  "authors": ["Confis0oooooo"],
+  "id": "confis",
+  "version": "${version}",
+  "name": "Confis",
+  "description": "Custom Fabric HUD and Utilities",
+  "authors": [
+    "Kanji4k"
+  ],
+  "contact": {},
   "license": "MIT",
+  "icon": "assets/confis/icon.png",
   "environment": "client",
   "entrypoints": {
-    "client": ["client.confis.ConfisClient"]
+    "client": [
+      "client.confis.ConfisClient"
+    ]
   },
-  "mixins": ["confis0oooooo.mixins.json"],
+  "mixins": [
+    "confis0oooooo.mixins.json"
+  ],
   "depends": {
-    "fabricloader": ">=0.17.0",
-    "minecraft": ">=1.21.11",
-    "java": ">=21",
-    "fabric-api": "*"
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21"
   }
 }
