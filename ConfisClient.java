@@ -1,6 +1,9 @@
 package client.confis;
 
+import com.mojang.brigadier.Command;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -30,13 +33,23 @@ public class ConfisClient implements ClientModInitializer {
                 "category.confis.general"
         ));
 
-        // Safe tick listener to open the menu screen when Right Shift is pressed
+        // Tick event to open via Right Shift
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player != null) {
                 while (menuKey.wasPressed()) {
                     client.setScreen(new ConfisScreen());
                 }
             }
+        });
+
+        // Fallback: Type /confis in chat to open the menu on any server
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            dispatcher.register(ClientCommandManager.literal("confis").executes(context -> {
+                net.minecraft.client.MinecraftClient.getInstance().execute(() -> {
+                    net.minecraft.client.MinecraftClient.getInstance().setScreen(new ConfisScreen());
+                });
+                return Command.SINGLE_SUCCESS;
+            }));
         });
 
         HudElementRegistry.attachElementAfter(
@@ -50,7 +63,6 @@ public class ConfisClient implements ClientModInitializer {
         ReachTracker.register();
         HitboxRenderer.register();
 
-        // hide the vanilla sidebar while the custom Scoreboard mod is on
         HudElementRegistry.replaceElement(VanillaHudElements.SCOREBOARD,
                 original -> (graphics, deltaTracker) -> {
                     if (!Modules.byId("scoreboard").cfg().enabled) original.render(graphics, deltaTracker);
